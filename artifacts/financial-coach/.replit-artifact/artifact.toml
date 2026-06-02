@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AI Financial Coach"
+version = "1.0.0"
+id = "artifacts/financial-coach"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24692
+
+[services.development]
+run = "pnpm --filter @workspace/financial-coach run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/financial-coach", "run", "build" ]
+publicDir = "artifacts/financial-coach/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24692"
+BASE_PATH = "/"

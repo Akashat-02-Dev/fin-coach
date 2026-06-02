@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Financial Coach API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: analysis
+    description: Financial analysis operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,105 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /analysis/run:
+    post:
+      operationId: runAnalysis
+      tags: [analysis]
+      summary: Run multi-agent financial analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinancialInput"
+      responses:
+        "200":
+          description: Analysis results from all three agents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /analysis/history:
+    get:
+      operationId: listAnalysisHistory
+      tags: [analysis]
+      summary: List past analyses
+      responses:
+        "200":
+          description: List of past analysis summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AnalysisSummary"
+  /analysis/history/{id}:
+    get:
+      operationId: getAnalysis
+      tags: [analysis]
+      summary: Get a specific past analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Full analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteAnalysis
+      tags: [analysis]
+      summary: Delete a past analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /analysis/stats:
+    get:
+      operationId: getAnalysisStats
+      tags: [analysis]
+      summary: Aggregate stats across all saved analyses
+      responses:
+        "200":
+          description: Aggregated financial stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisStats"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +134,234 @@ components:
           type: string
       required:
         - status
-
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    DebtItem:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+        interestRate:
+          type: number
+        minPayment:
+          type: ["number", "null"]
+      required:
+        - name
+        - amount
+        - interestRate
+    FinancialInput:
+      type: object
+      properties:
+        monthlyIncome:
+          type: number
+        dependants:
+          type: integer
+        expenses:
+          type: object
+          additionalProperties:
+            type: number
+        debts:
+          type: array
+          items:
+            $ref: "#/components/schemas/DebtItem"
+        notes:
+          type: ["string", "null"]
+      required:
+        - monthlyIncome
+        - expenses
+    SpendingCategory:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+        percentage:
+          type: number
+      required:
+        - category
+        - amount
+        - percentage
+    SpendingRecommendation:
+      type: object
+      properties:
+        category:
+          type: string
+        recommendation:
+          type: string
+        potentialSavings:
+          type: ["number", "null"]
+      required:
+        - category
+        - recommendation
+    BudgetAnalysis:
+      type: object
+      properties:
+        totalExpenses:
+          type: number
+        monthlyIncome:
+          type: ["number", "null"]
+        savingsRate:
+          type: ["number", "null"]
+        spendingCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpendingCategory"
+        recommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpendingRecommendation"
+        summary:
+          type: string
+      required:
+        - totalExpenses
+        - spendingCategories
+        - recommendations
+        - summary
+    EmergencyFund:
+      type: object
+      properties:
+        recommendedAmount:
+          type: number
+        currentStatus:
+          type: string
+        monthsOfExpenses:
+          type: number
+      required:
+        - recommendedAmount
+        - currentStatus
+        - monthsOfExpenses
+    SavingsRecommendation:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+        rationale:
+          type: string
+      required:
+        - category
+        - amount
+        - rationale
+    SavingsStrategy:
+      type: object
+      properties:
+        emergencyFund:
+          $ref: "#/components/schemas/EmergencyFund"
+        recommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/SavingsRecommendation"
+        automationTips:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+      required:
+        - emergencyFund
+        - recommendations
+        - automationTips
+        - summary
+    PayoffMethod:
+      type: object
+      properties:
+        name:
+          type: string
+        totalInterest:
+          type: number
+        monthsToPayoff:
+          type: integer
+        monthlyPayment:
+          type: ["number", "null"]
+        order:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - totalInterest
+        - monthsToPayoff
+        - order
+    DebtReduction:
+      type: object
+      properties:
+        totalDebt:
+          type: number
+        avalanche:
+          $ref: "#/components/schemas/PayoffMethod"
+        snowball:
+          $ref: "#/components/schemas/PayoffMethod"
+        recommendations:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+      required:
+        - totalDebt
+        - recommendations
+        - summary
+    AnalysisResult:
+      type: object
+      properties:
+        id:
+          type: ["integer", "null"]
+        createdAt:
+          type: ["string", "null"]
+        input:
+          $ref: "#/components/schemas/FinancialInput"
+        budgetAnalysis:
+          $ref: "#/components/schemas/BudgetAnalysis"
+        savingsStrategy:
+          $ref: "#/components/schemas/SavingsStrategy"
+        debtReduction:
+          $ref: "#/components/schemas/DebtReduction"
+      required:
+        - input
+        - budgetAnalysis
+        - savingsStrategy
+        - debtReduction
+    AnalysisSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+        monthlyIncome:
+          type: number
+        totalExpenses:
+          type: number
+        savingsRate:
+          type: ["number", "null"]
+        totalDebt:
+          type: ["number", "null"]
+      required:
+        - id
+        - createdAt
+        - monthlyIncome
+        - totalExpenses
+    AnalysisStats:
+      type: object
+      properties:
+        totalAnalyses:
+          type: integer
+        avgSavingsRate:
+          type: ["number", "null"]
+        avgMonthlyIncome:
+          type: ["number", "null"]
+        avgTotalExpenses:
+          type: ["number", "null"]
+        avgTotalDebt:
+          type: ["number", "null"]
+      required:
+        - totalAnalyses
