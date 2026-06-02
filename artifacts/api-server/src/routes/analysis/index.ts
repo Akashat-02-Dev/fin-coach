@@ -2,8 +2,9 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { analysesTable } from "@workspace/db";
 import { RunAnalysisBody } from "@workspace/api-zod";
-import { desc, eq, avg, count, sql } from "drizzle-orm";
+import { desc, eq, avg, count } from "drizzle-orm";
 import { runFinancialAnalysis } from "../../lib/financial-agents";
+import parseCsvRouter from "./parse-csv";
 
 const router = Router();
 
@@ -161,5 +162,7 @@ router.get("/analysis/stats", async (req, res) => {
       stats?.avgTotalDebt != null ? Number(stats.avgTotalDebt) : null,
   });
 });
+
+router.use(parseCsvRouter);
 
 export default router;
