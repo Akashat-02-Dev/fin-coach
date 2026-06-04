@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, PlusCircle, History, Activity, Target } from "lucide-react";
+import { LayoutDashboard, PlusCircle, History, Activity, Target, BarChart2, RefreshCw, CreditCard, TrendingUp } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import {
@@ -38,6 +38,14 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location === "/compare"}>
+              <Link href="/compare" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
+                <BarChart2 className="h-4 w-4" />
+                <span>Compare</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={location === "/analyze"}>
               <Link href="/analyze" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
                 <PlusCircle className="h-4 w-4" />
@@ -50,6 +58,30 @@ export function AppSidebar() {
               <Link href="/goals" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
                 <Target className="h-4 w-4" />
                 <span>Goals</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location === "/recurring"}>
+              <Link href="/recurring" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
+                <RefreshCw className="h-4 w-4" />
+                <span>Recurring</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location === "/debt-planner"}>
+              <Link href="/debt-planner" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
+                <CreditCard className="h-4 w-4" />
+                <span>Debt Planner</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location === "/net-worth"}>
+              <Link href="/net-worth" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
+                <TrendingUp className="h-4 w-4" />
+                <span>Net Worth</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

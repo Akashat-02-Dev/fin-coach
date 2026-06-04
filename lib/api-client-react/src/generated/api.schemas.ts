@@ -210,3 +210,89 @@ export interface GoalsInput {
   notes?: string | null;
 }
 
+export interface NetWorthEntry {
+  id: number;
+  date: string;
+  assets: number;
+  liabilities: number;
+  netWorth: number;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface NetWorthInput {
+  date: string;
+  assets: number;
+  liabilities: number;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface RecurringTransaction {
+  name: string;
+  estimatedMonthly: number;
+  category: string;
+  confidence: number;
+}
+
+export interface DebtPayoffMonth {
+  month: number;
+  payment: number;
+  principalPaid: number;
+  interestPaid: number;
+  remainingBalance: number;
+  debtName: string;
+}
+
+export type DebtPayoffPlanAvalanche = {
+  totalInterest: number;
+  monthsToPayoff: number;
+  schedule: DebtPayoffMonth[];
+};
+
+export type DebtPayoffPlanSnowball = {
+  totalInterest: number;
+  monthsToPayoff: number;
+  schedule: DebtPayoffMonth[];
+};
+
+export interface DebtPayoffPlan {
+  hasDebts: boolean;
+  totalDebt: number;
+  monthlyBudget: number;
+  avalanche?: DebtPayoffPlanAvalanche;
+  snowball?: DebtPayoffPlanSnowball;
+}
+
+export type AlertType = typeof AlertType[keyof typeof AlertType];
+
+
+export const AlertType = {
+  savings_rate_drop: 'savings_rate_drop',
+  spending_spike: 'spending_spike',
+  goal_missed: 'goal_missed',
+  no_data: 'no_data',
+} as const;
+
+export type AlertSeverity = typeof AlertSeverity[keyof typeof AlertSeverity];
+
+
+export const AlertSeverity = {
+  info: 'info',
+  warning: 'warning',
+  critical: 'critical',
+} as const;
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  title: string;
+  message: string;
+  /** @nullable */
+  value?: number | null;
+  /** @nullable */
+  threshold?: number | null;
+}
+

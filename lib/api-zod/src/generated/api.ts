@@ -238,6 +238,18 @@ export const GetAnalysisInsightsResponse = zod.object({
 
 
 /**
+ * @summary Detect recurring transactions from latest analysis
+ */
+export const GetRecurringTransactionsResponseItem = zod.object({
+  "name": zod.string(),
+  "estimatedMonthly": zod.number(),
+  "category": zod.string(),
+  "confidence": zod.number()
+})
+export const GetRecurringTransactionsResponse = zod.array(GetRecurringTransactionsResponseItem)
+
+
+/**
  * @summary Get current financial goals
  */
 export const GetGoalsResponse = zod.object({
@@ -271,5 +283,88 @@ export const UpsertGoalsResponse = zod.object({
   "notes": zod.string().nullish(),
   "updatedAt": zod.string().nullish()
 })
+
+
+/**
+ * @summary List all net worth entries
+ */
+export const ListNetWorthResponseItem = zod.object({
+  "id": zod.number(),
+  "date": zod.string(),
+  "assets": zod.number(),
+  "liabilities": zod.number(),
+  "netWorth": zod.number(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListNetWorthResponse = zod.array(ListNetWorthResponseItem)
+
+
+/**
+ * @summary Add a net worth snapshot
+ */
+export const CreateNetWorthEntryBody = zod.object({
+  "date": zod.string(),
+  "assets": zod.number(),
+  "liabilities": zod.number(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete a net worth entry
+ */
+export const DeleteNetWorthEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Month-by-month debt payoff schedule from latest analysis
+ */
+export const GetDebtPayoffPlanResponse = zod.object({
+  "hasDebts": zod.boolean(),
+  "totalDebt": zod.number(),
+  "monthlyBudget": zod.number(),
+  "avalanche": zod.object({
+  "totalInterest": zod.number(),
+  "monthsToPayoff": zod.number(),
+  "schedule": zod.array(zod.object({
+  "month": zod.number(),
+  "payment": zod.number(),
+  "principalPaid": zod.number(),
+  "interestPaid": zod.number(),
+  "remainingBalance": zod.number(),
+  "debtName": zod.string()
+}))
+}).optional(),
+  "snowball": zod.object({
+  "totalInterest": zod.number(),
+  "monthsToPayoff": zod.number(),
+  "schedule": zod.array(zod.object({
+  "month": zod.number(),
+  "payment": zod.number(),
+  "principalPaid": zod.number(),
+  "interestPaid": zod.number(),
+  "remainingBalance": zod.number(),
+  "debtName": zod.string()
+}))
+}).optional()
+})
+
+
+/**
+ * @summary Get active financial alerts based on latest data
+ */
+export const GetAlertsResponseItem = zod.object({
+  "id": zod.string(),
+  "type": zod.enum(['savings_rate_drop', 'spending_spike', 'goal_missed', 'no_data']),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "value": zod.number().nullish(),
+  "threshold": zod.number().nullish()
+})
+export const GetAlertsResponse = zod.array(GetAlertsResponseItem)
 
 

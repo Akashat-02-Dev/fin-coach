@@ -1,5 +1,7 @@
 import { Link } from "wouter";
-import { useGetAnalysisStats, useListAnalysisHistory, useGetAnalysisInsights, useGetGoals } from "@workspace/api-client-react";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { useGetAnalysisStats, useListAnalysisHistory, useGetAnalysisInsights, useGetGoals, useGetAlerts, useGetAnalysis } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +17,12 @@ export default function Dashboard() {
   const { data: history, isLoading: historyLoading } = useListAnalysisHistory();
   const { data: insights, isLoading: insightsLoading } = useGetAnalysisInsights();
   const { data: goals, isLoading: goalsLoading } = useGetGoals();
+  const { data: alerts } = useGetAlerts();
+
+  const latestAnalysisId = history?.[0]?.id;
+  const { data: latestAnalysis } = useGetAnalysis(latestAnalysisId ?? 0, { query: { enabled: !!latestAnalysisId } });
+  
+  const PIE_COLORS = ["#2dd4bf", "#0f766e", "#115e59", "#5eead4", "#99f6e4", "#0891b2", "#0e7490", "#155e75"];
 
   const formatCurrency = (val: number | null | undefined) =>
     val != null
@@ -359,6 +367,75 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
+
+          {latestAnalysis?.budgetAnalysis?.spendingCategories && latestAnalysis.budgetAnalysis.spendingCategories.length > 0 && (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Spending Breakdown</CardTitle>
+                <CardDescription>Latest analysis spending categories</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={latestAnalysis.budgetAnalysis.spendingCategories}
+                        dataKey="amount"
+                        nameKey="category"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {latestAnalysis.budgetAnalysis.spendingCategories.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(value: number, name: string, props: any) => [`${formatCurrency(value)} (${props.payload.percentage.toFixed(1)}%)`, name]} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {alerts && alerts.length > 0 && (
+            <Card className="shadow-sm border-destructive/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  Financial Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {alerts.map((alert) => (
+                  <div key={alert.id} className={`flex gap-3 p-4 rounded-lg border ${
+                    alert.severity === "critical" ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" :
+                    alert.severity === "warning" ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900" :
+                    "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800"
+                  }`}>
+                    {alert.severity === "critical" && <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />}
+                    {alert.severity === "warning" && <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
+                    {alert.severity === "info" && <Info className="h-5 w-5 text-slate-600 dark:text-slate-400 shrink-0 mt-0.5" />}
+                    
+                    <div>
+                      <h4 className={`text-sm font-semibold ${
+                        alert.severity === "critical" ? "text-red-800 dark:text-red-300" :
+                        alert.severity === "warning" ? "text-amber-800 dark:text-amber-300" :
+                        "text-slate-800 dark:text-slate-300"
+                      }`}>{alert.title}</h4>
+                      <p className={`text-sm mt-1 ${
+                        alert.severity === "critical" ? "text-red-700 dark:text-red-400" :
+                        alert.severity === "warning" ? "text-amber-700 dark:text-amber-400" :
+                        "text-slate-600 dark:text-slate-400"
+                      }`}>{alert.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Recent Analyses */}
           <div className="space-y-4">

@@ -4,7 +4,7 @@ import { useListAnalysisHistory, useDeleteAnalysis, getListAnalysisHistoryQueryK
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trash2, ArrowRight, FileText } from "lucide-react";
+import { Trash2, ArrowRight, FileText, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -65,9 +65,17 @@ export default function History() {
           <h1 className="text-3xl font-bold tracking-tight">Analysis History</h1>
           <p className="text-muted-foreground mt-1">Review your past financial reports and track your progress over time.</p>
         </div>
-        <Button asChild>
-          <Link href="/analyze">Run New Analysis</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasHistory && (
+            <Button variant="outline" onClick={() => window.open("/api/analysis/export/csv", "_blank")}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          )}
+          <Button asChild>
+            <Link href="/analyze">Run New Analysis</Link>
+          </Button>
+        </div>
       </div>
 
       {!hasHistory ? (

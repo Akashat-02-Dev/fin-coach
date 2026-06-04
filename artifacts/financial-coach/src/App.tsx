@@ -8,6 +8,10 @@ import Analyze from "@/pages/analyze";
 import Results from "@/pages/results";
 import History from "@/pages/history";
 import GoalsPage from "@/pages/goals";
+import Compare from "@/pages/compare";
+import Recurring from "@/pages/recurring";
+import DebtPlanner from "@/pages/debt-planner";
+import NetWorth from "@/pages/net-worth";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -21,6 +25,10 @@ function Router() {
         <Route path="/results/:id" component={Results} />
         <Route path="/history" component={History} />
         <Route path="/goals" component={GoalsPage} />
+        <Route path="/compare" component={Compare} />
+        <Route path="/recurring" component={Recurring} />
+        <Route path="/debt-planner" component={DebtPlanner} />
+        <Route path="/net-worth" component={NetWorth} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

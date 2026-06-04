@@ -13,6 +13,12 @@ tags:
     description: Financial analysis operations
   - name: goals
     description: Financial goals
+  - name: netWorth
+    description: Net worth tracking
+  - name: debt
+    description: Debt payoff planning
+  - name: alerts
+    description: Financial alerts
 paths:
   /healthz:
     get:
@@ -137,6 +143,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AnalysisInsights"
+  /analysis/recurring:
+    get:
+      operationId: getRecurringTransactions
+      tags: [analysis]
+      summary: Detect recurring transactions from latest analysis
+      responses:
+        "200":
+          description: Detected recurring transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecurringTransaction"
+  /analysis/export/csv:
+    get:
+      operationId: exportAnalysisCsv
+      tags: [analysis]
+      summary: Export all analyses as CSV download
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
   /goals:
     get:
       operationId: getGoals
@@ -144,7 +176,7 @@ paths:
       summary: Get current financial goals
       responses:
         "200":
-          description: Current goals (defaults if none set)
+          description: Current goals
           content:
             application/json:
               schema:
@@ -166,6 +198,89 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Goals"
+  /net-worth:
+    get:
+      operationId: listNetWorth
+      tags: [netWorth]
+      summary: List all net worth entries
+      responses:
+        "200":
+          description: Net worth entries sorted by date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NetWorthEntry"
+    post:
+      operationId: createNetWorthEntry
+      tags: [netWorth]
+      summary: Add a net worth snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NetWorthInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetWorthEntry"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /net-worth/{id}:
+    delete:
+      operationId: deleteNetWorthEntry
+      tags: [netWorth]
+      summary: Delete a net worth entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /debt/payoff-plan:
+    get:
+      operationId: getDebtPayoffPlan
+      tags: [debt]
+      summary: Month-by-month debt payoff schedule from latest analysis
+      responses:
+        "200":
+          description: Avalanche and snowball payoff plans
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DebtPayoffPlan"
+  /alerts:
+    get:
+      operationId: getAlerts
+      tags: [alerts]
+      summary: Get active financial alerts based on latest data
+      responses:
+        "200":
+          description: Active alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
 components:
   schemas:
     HealthStatus:
@@ -455,3 +570,115 @@ components:
         notes:
           type: ["string", "null"]
       required: []
+    NetWorthEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        assets:
+          type: number
+        liabilities:
+          type: number
+        netWorth:
+          type: number
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, date, assets, liabilities, netWorth, createdAt]
+    NetWorthInput:
+      type: object
+      properties:
+        date:
+          type: string
+        assets:
+          type: number
+        liabilities:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required: [date, assets, liabilities]
+    RecurringTransaction:
+      type: object
+      properties:
+        name:
+          type: string
+        estimatedMonthly:
+          type: number
+        category:
+          type: string
+        confidence:
+          type: number
+      required: [name, estimatedMonthly, category, confidence]
+    DebtPayoffMonth:
+      type: object
+      properties:
+        month:
+          type: integer
+        payment:
+          type: number
+        principalPaid:
+          type: number
+        interestPaid:
+          type: number
+        remainingBalance:
+          type: number
+        debtName:
+          type: string
+      required: [month, payment, principalPaid, interestPaid, remainingBalance, debtName]
+    DebtPayoffPlan:
+      type: object
+      properties:
+        hasDebts:
+          type: boolean
+        totalDebt:
+          type: number
+        monthlyBudget:
+          type: number
+        avalanche:
+          type: object
+          properties:
+            totalInterest:
+              type: number
+            monthsToPayoff:
+              type: integer
+            schedule:
+              type: array
+              items:
+                $ref: "#/components/schemas/DebtPayoffMonth"
+          required: [totalInterest, monthsToPayoff, schedule]
+        snowball:
+          type: object
+          properties:
+            totalInterest:
+              type: number
+            monthsToPayoff:
+              type: integer
+            schedule:
+              type: array
+              items:
+                $ref: "#/components/schemas/DebtPayoffMonth"
+          required: [totalInterest, monthsToPayoff, schedule]
+      required: [hasDebts, totalDebt, monthlyBudget]
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [savings_rate_drop, spending_spike, goal_missed, no_data]
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        title:
+          type: string
+        message:
+          type: string
+        value:
+          type: ["number", "null"]
+        threshold:
+          type: ["number", "null"]
+      required: [id, type, severity, title, message]

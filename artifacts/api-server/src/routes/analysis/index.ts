@@ -166,5 +166,7 @@ router.get("/analysis/stats", async (req, res) => {
 
 router.use(parseCsvRouter);
 router.use(insightsRouter);
+router.use((await import("./recurring")).default);
+router.use((await import("./export")).default);
 
 export default router;

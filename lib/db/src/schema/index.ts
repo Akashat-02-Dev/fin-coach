@@ -19,3 +19,4 @@
 
 export * from "./analyses";
 export * from "./goals";
+export * from "./net-worth";

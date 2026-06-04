@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './alert';
+export * from './alertSeverity';
+export * from './alertType';
 export * from './analysisInsights';
 export * from './analysisResult';
 export * from './analysisStats';
@@ -13,6 +16,10 @@ export * from './analysisSummary';
 export * from './apiError';
 export * from './budgetAnalysis';
 export * from './debtItem';
+export * from './debtPayoffMonth';
+export * from './debtPayoffPlan';
+export * from './debtPayoffPlanAvalanche';
+export * from './debtPayoffPlanSnowball';
 export * from './debtReduction';
 export * from './emergencyFund';
 export * from './financialInput';
@@ -22,8 +29,11 @@ export * from './goalsInput';
 export * from './healthStatus';
 export * from './insightTip';
 export * from './insightTipPriority';
+export * from './netWorthEntry';
+export * from './netWorthInput';
 export * from './payoffMethod';
 export * from './projectionData';
+export * from './recurringTransaction';
 export * from './savingsRecommendation';
 export * from './savingsStrategy';
 export * from './spendingCategory';
