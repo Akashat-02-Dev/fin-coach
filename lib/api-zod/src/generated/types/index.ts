@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './analysisInsights';
 export * from './analysisResult';
 export * from './analysisStats';
 export * from './analysisSummary';
@@ -16,9 +17,15 @@ export * from './debtReduction';
 export * from './emergencyFund';
 export * from './financialInput';
 export * from './financialInputExpenses';
+export * from './goals';
+export * from './goalsInput';
 export * from './healthStatus';
+export * from './insightTip';
+export * from './insightTipPriority';
 export * from './payoffMethod';
+export * from './projectionData';
 export * from './savingsRecommendation';
 export * from './savingsStrategy';
 export * from './spendingCategory';
 export * from './spendingRecommendation';
+export * from './velocityData';

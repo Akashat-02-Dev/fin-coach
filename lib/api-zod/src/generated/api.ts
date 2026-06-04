@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -205,6 +204,72 @@ export const GetAnalysisStatsResponse = zod.object({
   "avgMonthlyIncome": zod.number().nullish(),
   "avgTotalExpenses": zod.number().nullish(),
   "avgTotalDebt": zod.number().nullish()
+})
+
+
+/**
+ * @summary Smart insights computed from analysis history
+ */
+export const GetAnalysisInsightsResponse = zod.object({
+  "healthScore": zod.number().nullish(),
+  "healthLabel": zod.string().nullish(),
+  "velocity": zod.object({
+  "incomeChange": zod.number().nullish(),
+  "expensesChange": zod.number().nullish(),
+  "debtChange": zod.number().nullish(),
+  "savingsRateChange": zod.number().nullish()
+}),
+  "projection": zod.object({
+  "months6": zod.number().nullish(),
+  "months12": zod.number().nullish(),
+  "months24": zod.number().nullish(),
+  "monthlySurplus": zod.number().nullish()
+}),
+  "tips": zod.array(zod.object({
+  "category": zod.string(),
+  "text": zod.string(),
+  "potentialSavings": zod.number().nullish(),
+  "priority": zod.enum(['high', 'medium', 'low'])
+})),
+  "latestSavingsRate": zod.number().nullish(),
+  "latestMonthlySurplus": zod.number().nullish(),
+  "hasEnoughData": zod.boolean()
+})
+
+
+/**
+ * @summary Get current financial goals
+ */
+export const GetGoalsResponse = zod.object({
+  "id": zod.number().nullish(),
+  "targetSavingsRate": zod.number().nullish(),
+  "targetMonthlySavings": zod.number().nullish(),
+  "targetDebtPayoffMonths": zod.number().nullish(),
+  "targetEmergencyFundMonths": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Create or update financial goals
+ */
+export const UpsertGoalsBody = zod.object({
+  "targetSavingsRate": zod.number().nullish(),
+  "targetMonthlySavings": zod.number().nullish(),
+  "targetDebtPayoffMonths": zod.number().nullish(),
+  "targetEmergencyFundMonths": zod.number().nullish(),
+  "notes": zod.string().nullish()
+})
+
+export const UpsertGoalsResponse = zod.object({
+  "id": zod.number().nullish(),
+  "targetSavingsRate": zod.number().nullish(),
+  "targetMonthlySavings": zod.number().nullish(),
+  "targetDebtPayoffMonths": zod.number().nullish(),
+  "targetEmergencyFundMonths": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
 })
 
 

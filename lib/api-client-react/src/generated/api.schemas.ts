@@ -126,3 +126,87 @@ export interface AnalysisStats {
   avgTotalDebt?: number | null;
 }
 
+export interface VelocityData {
+  /** @nullable */
+  incomeChange?: number | null;
+  /** @nullable */
+  expensesChange?: number | null;
+  /** @nullable */
+  debtChange?: number | null;
+  /** @nullable */
+  savingsRateChange?: number | null;
+}
+
+export interface ProjectionData {
+  /** @nullable */
+  months6?: number | null;
+  /** @nullable */
+  months12?: number | null;
+  /** @nullable */
+  months24?: number | null;
+  /** @nullable */
+  monthlySurplus?: number | null;
+}
+
+export type InsightTipPriority = typeof InsightTipPriority[keyof typeof InsightTipPriority];
+
+
+export const InsightTipPriority = {
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
+} as const;
+
+export interface InsightTip {
+  category: string;
+  text: string;
+  /** @nullable */
+  potentialSavings?: number | null;
+  priority: InsightTipPriority;
+}
+
+export interface AnalysisInsights {
+  /** @nullable */
+  healthScore?: number | null;
+  /** @nullable */
+  healthLabel?: string | null;
+  velocity: VelocityData;
+  projection: ProjectionData;
+  tips: InsightTip[];
+  /** @nullable */
+  latestSavingsRate?: number | null;
+  /** @nullable */
+  latestMonthlySurplus?: number | null;
+  hasEnoughData: boolean;
+}
+
+export interface Goals {
+  /** @nullable */
+  id?: number | null;
+  /** @nullable */
+  targetSavingsRate?: number | null;
+  /** @nullable */
+  targetMonthlySavings?: number | null;
+  /** @nullable */
+  targetDebtPayoffMonths?: number | null;
+  /** @nullable */
+  targetEmergencyFundMonths?: number | null;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  updatedAt?: string | null;
+}
+
+export interface GoalsInput {
+  /** @nullable */
+  targetSavingsRate?: number | null;
+  /** @nullable */
+  targetMonthlySavings?: number | null;
+  /** @nullable */
+  targetDebtPayoffMonths?: number | null;
+  /** @nullable */
+  targetEmergencyFundMonths?: number | null;
+  /** @nullable */
+  notes?: string | null;
+}
+

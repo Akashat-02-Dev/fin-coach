@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import Analyze from "@/pages/analyze";
 import Results from "@/pages/results";
 import History from "@/pages/history";
+import GoalsPage from "@/pages/goals";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ function Router() {
         <Route path="/analyze" component={Analyze} />
         <Route path="/results/:id" component={Results} />
         <Route path="/history" component={History} />
+        <Route path="/goals" component={GoalsPage} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

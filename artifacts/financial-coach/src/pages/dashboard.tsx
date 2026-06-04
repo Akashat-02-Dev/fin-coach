@@ -1,15 +1,20 @@
 import { Link } from "wouter";
-import { useGetAnalysisStats, useListAnalysisHistory } from "@workspace/api-client-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetAnalysisStats, useListAnalysisHistory, useGetAnalysisInsights, useGetGoals } from "@workspace/api-client-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Activity, DollarSign, PiggyBank, CreditCard, TrendingUp } from "lucide-react";
+import { ArrowRight, Activity, DollarSign, PiggyBank, CreditCard, TrendingUp, TrendingDown, Target, Lightbulb, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { SpendingTrendsChart } from "@/components/SpendingTrendsChart";
+import { HealthScoreGauge } from "@/components/HealthScoreGauge";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetAnalysisStats();
   const { data: history, isLoading: historyLoading } = useListAnalysisHistory();
+  const { data: insights, isLoading: insightsLoading } = useGetAnalysisInsights();
+  const { data: goals, isLoading: goalsLoading } = useGetGoals();
 
   const formatCurrency = (val: number | null | undefined) =>
     val != null
@@ -21,9 +26,9 @@ export default function Dashboard() {
       ? new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 }).format(val / 100)
       : "—";
 
-  if (statsLoading || historyLoading) {
+  if (statsLoading || historyLoading || insightsLoading || goalsLoading) {
     return (
-      <div className="p-8 space-y-6">
+      <div className="p-8 space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <Skeleton className="h-8 w-56" />
@@ -31,8 +36,8 @@ export default function Dashboard() {
           </div>
           <Skeleton className="h-10 w-36" />
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 w-full" />)}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-36 w-full" />)}
         </div>
         <Skeleton className="h-80 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -52,6 +57,28 @@ export default function Dashboard() {
     : avgSavingsRate >= 10 ? "text-primary"
     : avgSavingsRate >= 0 ? "text-yellow-600 dark:text-yellow-400"
     : "text-destructive";
+
+  const renderVelocityBadge = (value: number | null | undefined, invert: boolean = false) => {
+    if (!insights?.hasEnoughData || value == null) return null;
+    if (value === 0) return null;
+    
+    // invert: true for expenses/debt (lower is better, so negative is green)
+    const isImproving = invert ? value < 0 : value > 0;
+    
+    return (
+      <Badge variant={isImproving ? "default" : "destructive"} className={`ml-2 text-[10px] px-1.5 py-0 rounded-sm ${isImproving ? 'bg-green-500 hover:bg-green-600' : ''}`}>
+        {value > 0 ? <TrendingUp className="h-3 w-3 mr-0.5 inline" /> : <TrendingDown className="h-3 w-3 mr-0.5 inline" />}
+        {value > 0 ? '+' : ''}{value.toFixed(1)}%
+      </Badge>
+    );
+  };
+
+  const hasAnyGoal = goals && (
+    goals.targetSavingsRate != null || 
+    goals.targetMonthlySavings != null || 
+    goals.targetDebtPayoffMonths != null || 
+    goals.targetEmergencyFundMonths != null
+  );
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -74,16 +101,22 @@ export default function Dashboard() {
       {hasHistory ? (
         <>
           {/* Stat cards */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="shadow-sm" data-testid="stat-total-analyses">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Analyses</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold font-mono">{stats?.totalAnalyses ?? 0}</div>
-              </CardContent>
-            </Card>
+          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-5">
+            {insights?.healthScore != null ? (
+              <Card className="shadow-sm flex flex-col items-center justify-center p-4 col-span-1 md:col-span-3 lg:col-span-1 border-primary/20 bg-primary/5">
+                <HealthScoreGauge score={insights.healthScore} label={insights.healthLabel || "Score"} />
+              </Card>
+            ) : (
+              <Card className="shadow-sm" data-testid="stat-total-analyses">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Analyses</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold font-mono">{stats?.totalAnalyses ?? 0}</div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="shadow-sm" data-testid="stat-avg-savings-rate">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -91,8 +124,11 @@ export default function Dashboard() {
                 <PiggyBank className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className={`text-3xl font-bold font-mono ${savingsRateColor}`}>
-                  {formatPercent(stats?.avgSavingsRate)}
+                <div className="flex items-baseline">
+                  <div className={`text-3xl font-bold font-mono ${savingsRateColor}`}>
+                    {formatPercent(stats?.avgSavingsRate)}
+                  </div>
+                  {renderVelocityBadge(insights?.velocity.savingsRateChange, false)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {avgSavingsRate != null && avgSavingsRate >= 20
@@ -114,7 +150,23 @@ export default function Dashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold font-mono">{formatCurrency(stats?.avgMonthlyIncome)}</div>
+                <div className="flex items-baseline">
+                  <div className="text-3xl font-bold font-mono">{formatCurrency(stats?.avgMonthlyIncome)}</div>
+                  {renderVelocityBadge(insights?.velocity.incomeChange, false)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm" data-testid="stat-avg-expenses">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Total Expenses</CardTitle>
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-baseline">
+                  <div className="text-3xl font-bold font-mono">{formatCurrency(stats?.avgTotalExpenses)}</div>
+                  {renderVelocityBadge(insights?.velocity.expensesChange, true)}
+                </div>
               </CardContent>
             </Card>
 
@@ -124,7 +176,153 @@ export default function Dashboard() {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold font-mono">{formatCurrency(stats?.avgTotalDebt)}</div>
+                <div className="flex items-baseline">
+                  <div className="text-3xl font-bold font-mono">{formatCurrency(stats?.avgTotalDebt)}</div>
+                  {renderVelocityBadge(insights?.velocity.debtChange, true)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Top Insights */}
+            {insights?.tips && insights.tips.length > 0 && (
+              <Card className="shadow-sm md:col-span-3">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-yellow-500" />
+                    Personalized Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {insights.tips.slice(0, 3).map((tip, i) => (
+                      <div key={i} className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold text-sm">{tip.category}</span>
+                          <Badge variant="outline" className={
+                            tip.priority === "high" ? "border-red-500 text-red-500" :
+                            tip.priority === "medium" ? "border-amber-500 text-amber-500" :
+                            "border-slate-500 text-slate-500"
+                          }>
+                            {tip.priority}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground flex-1">{tip.text}</p>
+                        {tip.potentialSavings != null && tip.potentialSavings > 0 && (
+                          <div className="mt-3 pt-3 border-t border-border text-xs font-medium text-green-600 dark:text-green-400">
+                            Save up to {formatCurrency(tip.potentialSavings)}/mo
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Projection & Goals Row */}
+            {insights?.projection?.months12 != null && (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    At your current pace
+                  </CardTitle>
+                  <CardDescription>
+                    Based on a {formatCurrency(insights.projection.monthlySurplus)}/mo surplus
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-border pb-2">
+                      <span className="text-muted-foreground text-sm">In 6 months</span>
+                      <span className="font-mono font-bold text-lg">{formatCurrency(insights.projection.months6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-border pb-2">
+                      <span className="text-muted-foreground text-sm">In 12 months</span>
+                      <span className="font-mono font-bold text-lg text-primary">{formatCurrency(insights.projection.months12)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-sm">In 24 months</span>
+                      <span className="font-mono font-bold text-lg">{formatCurrency(insights.projection.months24)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className={insights?.projection?.months12 != null ? "md:col-span-2 shadow-sm" : "md:col-span-3 shadow-sm"}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div className="space-y-1">
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-primary" />
+                    Your Goals
+                  </CardTitle>
+                  <CardDescription>Progress towards your financial targets</CardDescription>
+                </div>
+                {!hasAnyGoal && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/goals">Set Goals</Link>
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {!hasAnyGoal ? (
+                  <div className="py-6 text-center text-muted-foreground text-sm">
+                    You haven't set any financial goals yet. Set targets for your savings rate, monthly surplus, and debt payoff to track your progress here.
+                  </div>
+                ) : (
+                  <div className="space-y-6 mt-2">
+                    {goals.targetSavingsRate != null && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">Savings Rate</span>
+                          <span className="text-muted-foreground">
+                            {formatPercent(insights?.latestSavingsRate)} / {goals.targetSavingsRate}% target
+                          </span>
+                        </div>
+                        <Progress value={Math.min(100, Math.max(0, ((insights?.latestSavingsRate || 0) / goals.targetSavingsRate) * 100))} className="h-2" />
+                      </div>
+                    )}
+                    
+                    {goals.targetMonthlySavings != null && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">Monthly Savings</span>
+                          <span className="text-muted-foreground">
+                            {formatCurrency(insights?.latestMonthlySurplus)} / {formatCurrency(goals.targetMonthlySavings)} target
+                          </span>
+                        </div>
+                        <Progress value={Math.min(100, Math.max(0, ((insights?.latestMonthlySurplus || 0) / goals.targetMonthlySavings) * 100))} className="h-2" />
+                      </div>
+                    )}
+
+                    {goals.targetDebtPayoffMonths != null && (
+                      <div className="flex justify-between items-center py-2 border-t border-border mt-2">
+                        <div className="space-y-0.5">
+                          <div className="text-sm font-medium">Debt Payoff Target</div>
+                          <div className="text-xs text-muted-foreground">Become debt-free in {goals.targetDebtPayoffMonths} months</div>
+                        </div>
+                        <div className="text-sm font-semibold">
+                          Target set
+                        </div>
+                      </div>
+                    )}
+
+                    {goals.targetEmergencyFundMonths != null && (
+                      <div className="flex justify-between items-center py-2 border-t border-border mt-2">
+                        <div className="space-y-0.5">
+                          <div className="text-sm font-medium">Emergency Fund Target</div>
+                          <div className="text-xs text-muted-foreground">Save {goals.targetEmergencyFundMonths} months of expenses</div>
+                        </div>
+                        <div className="text-sm font-semibold">
+                          Target set
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

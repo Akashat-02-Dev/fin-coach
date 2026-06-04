@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: AI Financial Coach API
@@ -12,13 +11,14 @@ tags:
     description: Health operations
   - name: analysis
     description: Financial analysis operations
+  - name: goals
+    description: Financial goals
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -39,7 +39,7 @@ paths:
               $ref: "#/components/schemas/FinancialInput"
       responses:
         "200":
-          description: Analysis results from all three agents
+          description: Analysis results
           content:
             application/json:
               schema:
@@ -125,6 +125,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AnalysisStats"
+  /analysis/insights:
+    get:
+      operationId: getAnalysisInsights
+      tags: [analysis]
+      summary: Smart insights computed from analysis history
+      responses:
+        "200":
+          description: Computed insights, projections, velocity, health score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisInsights"
+  /goals:
+    get:
+      operationId: getGoals
+      tags: [goals]
+      summary: Get current financial goals
+      responses:
+        "200":
+          description: Current goals (defaults if none set)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goals"
+    put:
+      operationId: upsertGoals
+      tags: [goals]
+      summary: Create or update financial goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalsInput"
+      responses:
+        "200":
+          description: Updated goals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goals"
 components:
   schemas:
     HealthStatus:
@@ -132,15 +173,13 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
     ApiError:
       type: object
       properties:
         error:
           type: string
-      required:
-        - error
+      required: [error]
     DebtItem:
       type: object
       properties:
@@ -152,10 +191,7 @@ components:
           type: number
         minPayment:
           type: ["number", "null"]
-      required:
-        - name
-        - amount
-        - interestRate
+      required: [name, amount, interestRate]
     FinancialInput:
       type: object
       properties:
@@ -173,9 +209,7 @@ components:
             $ref: "#/components/schemas/DebtItem"
         notes:
           type: ["string", "null"]
-      required:
-        - monthlyIncome
-        - expenses
+      required: [monthlyIncome, expenses]
     SpendingCategory:
       type: object
       properties:
@@ -185,10 +219,7 @@ components:
           type: number
         percentage:
           type: number
-      required:
-        - category
-        - amount
-        - percentage
+      required: [category, amount, percentage]
     SpendingRecommendation:
       type: object
       properties:
@@ -198,9 +229,7 @@ components:
           type: string
         potentialSavings:
           type: ["number", "null"]
-      required:
-        - category
-        - recommendation
+      required: [category, recommendation]
     BudgetAnalysis:
       type: object
       properties:
@@ -220,11 +249,7 @@ components:
             $ref: "#/components/schemas/SpendingRecommendation"
         summary:
           type: string
-      required:
-        - totalExpenses
-        - spendingCategories
-        - recommendations
-        - summary
+      required: [totalExpenses, spendingCategories, recommendations, summary]
     EmergencyFund:
       type: object
       properties:
@@ -234,10 +259,7 @@ components:
           type: string
         monthsOfExpenses:
           type: number
-      required:
-        - recommendedAmount
-        - currentStatus
-        - monthsOfExpenses
+      required: [recommendedAmount, currentStatus, monthsOfExpenses]
     SavingsRecommendation:
       type: object
       properties:
@@ -247,10 +269,7 @@ components:
           type: number
         rationale:
           type: string
-      required:
-        - category
-        - amount
-        - rationale
+      required: [category, amount, rationale]
     SavingsStrategy:
       type: object
       properties:
@@ -266,11 +285,7 @@ components:
             type: string
         summary:
           type: string
-      required:
-        - emergencyFund
-        - recommendations
-        - automationTips
-        - summary
+      required: [emergencyFund, recommendations, automationTips, summary]
     PayoffMethod:
       type: object
       properties:
@@ -286,11 +301,7 @@ components:
           type: array
           items:
             type: string
-      required:
-        - name
-        - totalInterest
-        - monthsToPayoff
-        - order
+      required: [name, totalInterest, monthsToPayoff, order]
     DebtReduction:
       type: object
       properties:
@@ -306,10 +317,7 @@ components:
             type: string
         summary:
           type: string
-      required:
-        - totalDebt
-        - recommendations
-        - summary
+      required: [totalDebt, recommendations, summary]
     AnalysisResult:
       type: object
       properties:
@@ -325,11 +333,7 @@ components:
           $ref: "#/components/schemas/SavingsStrategy"
         debtReduction:
           $ref: "#/components/schemas/DebtReduction"
-      required:
-        - input
-        - budgetAnalysis
-        - savingsStrategy
-        - debtReduction
+      required: [input, budgetAnalysis, savingsStrategy, debtReduction]
     AnalysisSummary:
       type: object
       properties:
@@ -345,11 +349,7 @@ components:
           type: ["number", "null"]
         totalDebt:
           type: ["number", "null"]
-      required:
-        - id
-        - createdAt
-        - monthlyIncome
-        - totalExpenses
+      required: [id, createdAt, monthlyIncome, totalExpenses]
     AnalysisStats:
       type: object
       properties:
@@ -363,5 +363,95 @@ components:
           type: ["number", "null"]
         avgTotalDebt:
           type: ["number", "null"]
-      required:
-        - totalAnalyses
+      required: [totalAnalyses]
+    VelocityData:
+      type: object
+      properties:
+        incomeChange:
+          type: ["number", "null"]
+        expensesChange:
+          type: ["number", "null"]
+        debtChange:
+          type: ["number", "null"]
+        savingsRateChange:
+          type: ["number", "null"]
+      required: []
+    ProjectionData:
+      type: object
+      properties:
+        months6:
+          type: ["number", "null"]
+        months12:
+          type: ["number", "null"]
+        months24:
+          type: ["number", "null"]
+        monthlySurplus:
+          type: ["number", "null"]
+      required: []
+    InsightTip:
+      type: object
+      properties:
+        category:
+          type: string
+        text:
+          type: string
+        potentialSavings:
+          type: ["number", "null"]
+        priority:
+          type: string
+          enum: [high, medium, low]
+      required: [category, text, priority]
+    AnalysisInsights:
+      type: object
+      properties:
+        healthScore:
+          type: ["integer", "null"]
+        healthLabel:
+          type: ["string", "null"]
+        velocity:
+          $ref: "#/components/schemas/VelocityData"
+        projection:
+          $ref: "#/components/schemas/ProjectionData"
+        tips:
+          type: array
+          items:
+            $ref: "#/components/schemas/InsightTip"
+        latestSavingsRate:
+          type: ["number", "null"]
+        latestMonthlySurplus:
+          type: ["number", "null"]
+        hasEnoughData:
+          type: boolean
+      required: [velocity, projection, tips, hasEnoughData]
+    Goals:
+      type: object
+      properties:
+        id:
+          type: ["integer", "null"]
+        targetSavingsRate:
+          type: ["number", "null"]
+        targetMonthlySavings:
+          type: ["number", "null"]
+        targetDebtPayoffMonths:
+          type: ["integer", "null"]
+        targetEmergencyFundMonths:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        updatedAt:
+          type: ["string", "null"]
+      required: []
+    GoalsInput:
+      type: object
+      properties:
+        targetSavingsRate:
+          type: ["number", "null"]
+        targetMonthlySavings:
+          type: ["number", "null"]
+        targetDebtPayoffMonths:
+          type: ["integer", "null"]
+        targetEmergencyFundMonths:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+      required: []

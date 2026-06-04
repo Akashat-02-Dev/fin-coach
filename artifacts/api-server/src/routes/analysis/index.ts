@@ -5,6 +5,7 @@ import { RunAnalysisBody } from "@workspace/api-zod";
 import { desc, eq, avg, count } from "drizzle-orm";
 import { runFinancialAnalysis } from "../../lib/financial-agents";
 import parseCsvRouter from "./parse-csv";
+import insightsRouter from "./insights";
 
 const router = Router();
 
@@ -164,5 +165,6 @@ router.get("/analysis/stats", async (req, res) => {
 });
 
 router.use(parseCsvRouter);
+router.use(insightsRouter);
 
 export default router;

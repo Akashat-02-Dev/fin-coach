@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, PlusCircle, History, Activity } from "lucide-react";
+import { LayoutDashboard, PlusCircle, History, Activity, Target } from "lucide-react";
 import { useHealthCheck } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import {
@@ -42,6 +42,14 @@ export function AppSidebar() {
               <Link href="/analyze" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
                 <PlusCircle className="h-4 w-4" />
                 <span>New Analysis</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location === "/goals"}>
+              <Link href="/goals" className="flex items-center gap-3 w-full p-2 text-sm font-medium transition-colors">
+                <Target className="h-4 w-4" />
+                <span>Goals</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
