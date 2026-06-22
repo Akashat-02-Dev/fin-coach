@@ -1,11 +1,17 @@
 import OpenAI from "openai";
 import { logger } from "./logger";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("OPENAI_API_KEY must be set.");
-}
+let openai: OpenAI | null = null;
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAIClient(): OpenAI {
+  if (openai) return openai;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured on the server.");
+  }
+  openai = new OpenAI({ apiKey });
+  return openai;
+}
 
 export interface DebtItem {
   name: string;
@@ -91,7 +97,8 @@ async function callAgent<T>(
 ): Promise<T> {
   logger.info({ agentName }, "Running financial agent");
 
-  const response = await openai.chat.completions.create({
+  const client = getOpenAIClient();
+  const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [
       { role: "system", content: systemPrompt },

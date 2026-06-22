@@ -2,7 +2,17 @@ import OpenAI from "openai";
 import { parse } from "csv-parse/sync";
 import { logger } from "./logger";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (openai) return openai;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured on the server.");
+  }
+  openai = new OpenAI({ apiKey });
+  return openai;
+}
 
 export interface Transaction {
   date: string;
@@ -120,7 +130,8 @@ export async function categorizeTransactions(
 
   logger.info({ count: sample.length }, "Categorizing transactions with AI");
 
-  const response = await openai.chat.completions.create({
+  const client = getOpenAIClient();
+  const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
