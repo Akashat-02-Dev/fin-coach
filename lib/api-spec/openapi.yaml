@@ -281,6 +281,628 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Alert"
+  /auth/signup:
+    post:
+      operationId: signupUser
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupInput"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Log in an existing user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [auth]
+      summary: Log out the current user session
+      responses:
+        "200":
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required: [success]
+  /auth/me:
+    get:
+      operationId: authMe
+      tags: [auth]
+      summary: Verify the active session and get current user details
+      responses:
+        "200":
+          description: Active session user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [users]
+      summary: Get user profile details
+      responses:
+        "200":
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      operationId: updateProfile
+      tags: [users]
+      summary: Update user profile details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileInput"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteProfile
+      tags: [users]
+      summary: Delete user profile and all associated data
+      responses:
+        "204":
+          description: Profile deleted successfully
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /users/profile:
+    get:
+      operationId: getUserProfile
+      tags: [users]
+      summary: Get the current user's profile details
+      responses:
+        "200":
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      operationId: updateUserProfile
+      tags: [users]
+      summary: Update the current user's profile details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileInput"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid fields or incorrect current password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteUserProfile
+      tags: [users]
+      summary: Delete user profile and all associated data
+      responses:
+        "204":
+          description: Profile deleted successfully
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /billing/create-subscription:
+    post:
+      operationId: createSubscription
+      tags: [billing]
+      summary: Create a new Razorpay subscription
+      responses:
+        "200":
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptionId:
+                    type: string
+                  keyId:
+                    type: string
+                required: [subscriptionId, keyId]
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /billing/verify-signature:
+    post:
+      operationId: verifySignature
+      tags: [billing]
+      summary: Verify the Razorpay payment signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                razorpayPaymentId:
+                  type: string
+                razorpaySubscriptionId:
+                  type: string
+                razorpaySignature:
+                  type: string
+              required: [razorpayPaymentId, razorpaySubscriptionId, razorpaySignature]
+      responses:
+        "200":
+          description: Signature verified and user upgraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /billing/cancel-subscription:
+    post:
+      operationId: cancelSubscription
+      tags: [billing]
+      summary: Cancel the active Razorpay subscription
+      responses:
+        "200":
+          description: Subscription cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required: [success]
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Subscription not found or already cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /vault/accounts:
+    get:
+      operationId: getVaultAccounts
+      tags: [vault]
+      summary: Get all accounts in the financial vault
+      responses:
+        "200":
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VaultAccount"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      operationId: createVaultAccount
+      tags: [vault]
+      summary: Create a new account in the vault
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VaultAccountInput"
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaultAccount"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /vault/accounts/{id}:
+    delete:
+      operationId: deleteVaultAccount
+      tags: [vault]
+      summary: Delete an account from the vault
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Account deleted successfully
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /vault/investments:
+    get:
+      operationId: getVaultInvestments
+      tags: [vault]
+      summary: Get all investments in the financial vault
+      responses:
+        "200":
+          description: List of investments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VaultInvestment"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      operationId: createVaultInvestment
+      tags: [vault]
+      summary: Create a new investment in the vault
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VaultInvestmentInput"
+      responses:
+        "201":
+          description: Investment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaultInvestment"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /vault/investments/{id}:
+    delete:
+      operationId: deleteVaultInvestment
+      tags: [vault]
+      summary: Delete an investment from the vault
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Investment deleted successfully
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Investment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /vault/insurance:
+    get:
+      operationId: getVaultInsurancePolicies
+      tags: [vault]
+      summary: Get all insurance policies in the financial vault
+      responses:
+        "200":
+          description: List of insurance policies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VaultInsurancePolicy"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      operationId: createVaultInsurancePolicy
+      tags: [vault]
+      summary: Create a new insurance policy in the vault
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VaultInsurancePolicyInput"
+      responses:
+        "201":
+          description: Insurance policy created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaultInsurancePolicy"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /vault/insurance/{id}:
+    delete:
+      operationId: deleteVaultInsurancePolicy
+      tags: [vault]
+      summary: Delete an insurance policy from the vault
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Insurance policy deleted successfully
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Insurance policy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /investments/benchmark-rates:
+    get:
+      operationId: getBenchmarkRates
+      tags: [investments]
+      summary: Get typical market benchmark returns
+      responses:
+        "200":
+          description: Typical market return rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentBenchmarkRates"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /investments/scenarios:
+    get:
+      operationId: listInvestmentScenarios
+      tags: [investments]
+      summary: List saved investment scenarios for the user
+      responses:
+        "200":
+          description: Saved scenarios list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvestmentScenario"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      operationId: createInvestmentScenario
+      tags: [investments]
+      summary: Save a new investment scenario projection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvestmentScenarioInput"
+      responses:
+        "201":
+          description: Scenario saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentScenario"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Premium subscription required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /investments/scenarios/{id}:
+    delete:
+      operationId: deleteInvestmentScenario
+      tags: [investments]
+      summary: Delete a saved investment scenario projection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Scenario deleted successfully
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Scenario not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -295,6 +917,16 @@ components:
         error:
           type: string
       required: [error]
+    TrialExpiredError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "TRIAL_EXPIRED"
+        message:
+          type: string
+          example: "Your 15-day free trial has ended. Please upgrade to continue."
+      required: [error, message]
     DebtItem:
       type: object
       properties:
@@ -682,3 +1314,220 @@ components:
         threshold:
           type: ["number", "null"]
       required: [id, type, severity, title, message]
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: ["string", "null"]
+        employmentStatus:
+          type: ["string", "null"]
+        annualIncomeRange:
+          type: ["string", "null"]
+        riskTolerance:
+          type: ["string", "null"]
+        baseCurrency:
+          type: ["string", "null"]
+        subscriptionStatus:
+          type: ["string", "null"]
+        subscriptionTier:
+          type: ["string", "null"]
+        currentPeriodEnd:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        trialDaysRemaining:
+          type: integer
+        isTrialExpired:
+          type: boolean
+      required: [id, email, firstName, lastName, createdAt, updatedAt, trialDaysRemaining, isTrialExpired]
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+    SignupInput:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: ["string", "null"]
+        employmentStatus:
+          type: ["string", "null"]
+        annualIncomeRange:
+          type: ["string", "null"]
+        riskTolerance:
+          type: ["string", "null"]
+        baseCurrency:
+          type: ["string", "null"]
+      required: [email, password, firstName, lastName]
+    UserProfileInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        dateOfBirth:
+          type: ["string", "null"]
+        employmentStatus:
+          type: ["string", "null"]
+        annualIncomeRange:
+          type: ["string", "null"]
+        riskTolerance:
+          type: ["string", "null"]
+        baseCurrency:
+          type: ["string", "null"]
+        currentPassword:
+          type: ["string", "null"]
+        newPassword:
+          type: ["string", "null"]
+      required: [firstName, lastName, email]
+    VaultAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+        institutionName:
+          type: string
+        accountType:
+          type: string
+        encryptedAccountMask:
+          type: string
+        currentBalance:
+          type: number
+        interestRate:
+          type: number
+      required: [id, institutionName, accountType, encryptedAccountMask, currentBalance, interestRate]
+    VaultAccountInput:
+      type: object
+      properties:
+        institutionName:
+          type: string
+        accountType:
+          type: string
+        encryptedAccountMask:
+          type: string
+        currentBalance:
+          type: number
+        interestRate:
+          type: number
+      required: [institutionName, accountType, encryptedAccountMask, currentBalance, interestRate]
+    VaultInvestment:
+      type: object
+      properties:
+        id:
+          type: integer
+        assetClass:
+          type: string
+        tickerSymbol:
+          type: ["string", "null"]
+        currentValue:
+          type: number
+        costBasis:
+          type: number
+      required: [id, assetClass, currentValue, costBasis]
+    VaultInvestmentInput:
+      type: object
+      properties:
+        assetClass:
+          type: string
+        tickerSymbol:
+          type: ["string", "null"]
+        currentValue:
+          type: number
+        costBasis:
+          type: number
+      required: [assetClass, currentValue, costBasis]
+    VaultInsurancePolicy:
+      type: object
+      properties:
+        id:
+          type: integer
+        policyType:
+          type: string
+        coverageAmount:
+          type: number
+        monthlyPremium:
+          type: number
+      required: [id, policyType, coverageAmount, monthlyPremium]
+    VaultInsurancePolicyInput:
+      type: object
+      properties:
+        policyType:
+          type: string
+        coverageAmount:
+          type: number
+        monthlyPremium:
+          type: number
+      required: [policyType, coverageAmount, monthlyPremium]
+    InvestmentBenchmarkRates:
+      type: object
+      properties:
+        fixedDeposit:
+          type: number
+        corporateBonds:
+          type: number
+        gold:
+          type: number
+        indexFunds:
+          type: number
+        realEstate:
+          type: number
+      required: [fixedDeposit, corporateBonds, gold, indexFunds, realEstate]
+    InvestmentScenario:
+      type: object
+      properties:
+        id:
+          type: integer
+        scenarioName:
+          type: string
+        investmentType:
+          type: string
+        principalAmount:
+          type: number
+        durationYears:
+          type: integer
+        metaData:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, scenarioName, investmentType, principalAmount, durationYears, createdAt]
+    InvestmentScenarioInput:
+      type: object
+      properties:
+        scenarioName:
+          type: string
+        investmentType:
+          type: string
+        principalAmount:
+          type: number
+        durationYears:
+          type: integer
+        metaData:
+          type: object
+          nullable: true
+      required: [scenarioName, investmentType, principalAmount, durationYears]
+

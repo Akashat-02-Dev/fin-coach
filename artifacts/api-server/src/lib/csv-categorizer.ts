@@ -121,7 +121,7 @@ export async function categorizeTransactions(
   logger.info({ count: sample.length }, "Categorizing transactions with AI");
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",

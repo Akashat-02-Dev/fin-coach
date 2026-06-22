@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { motion } from "framer-motion";
 import { useGetGoals, useUpsertGoals, getGetGoalsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +25,27 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+} as const;
+
 export default function GoalsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: goals, isLoading } = useGetGoals();
   const upsertGoals = useUpsertGoals();
+  const { user } = useAuth();
+  const currencySymbol = user?.baseCurrency ? (new Intl.NumberFormat("en-US", { style: "currency", currency: user.baseCurrency }).formatToParts(0).find(p => p.type === 'currency')?.value || '$') : '$';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -87,9 +105,9 @@ export default function GoalsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6 max-w-3xl mx-auto">
-        <Skeleton className="h-10 w-48" />
-        <Card>
+      <div className="p-6 md:p-8 space-y-6 max-w-3xl mx-auto animate-pulse">
+        <Skeleton className="h-10 w-48 rounded-md mb-8" />
+        <Card className="glass-card">
           <CardHeader>
             <Skeleton className="h-6 w-32 mb-2" />
             <Skeleton className="h-4 w-64" />
@@ -108,129 +126,136 @@ export default function GoalsPage() {
   }
 
   return (
-    <div className="p-8 space-y-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Financial Goals</h1>
-          <p className="text-muted-foreground mt-1">
-            Set your targets to track your progress on the dashboard.
-          </p>
-        </div>
-      </div>
+    <motion.div 
+      className="p-6 md:p-8 space-y-6 max-w-3xl mx-auto"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={itemVariants}>
+        <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+          Financial Goals
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Set your targets to track your progress on the dashboard.
+        </p>
+      </motion.div>
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
-            Your Targets
-          </CardTitle>
-          <CardDescription>
-            All fields are optional. Fill out the ones that matter to you.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid gap-6 sm:grid-cols-2">
+      <motion.div variants={itemVariants}>
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Your Targets
+            </CardTitle>
+            <CardDescription>
+              All fields are optional. Fill out the ones that matter to you.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="targetSavingsRate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Target Savings Rate (%)</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="e.g. 20" className="font-mono" {...field} />
+                        </FormControl>
+                        <FormDescription>Recommended: 20% or more</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="targetMonthlySavings"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Target Monthly Savings ({currencySymbol})</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="e.g. 1000" className="font-mono" {...field} />
+                        </FormControl>
+                        <FormDescription>Amount to save each month</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="targetDebtPayoffMonths"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Target Debt Payoff (months)</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="e.g. 24" className="font-mono" {...field} />
+                        </FormControl>
+                        <FormDescription>Months until you are debt-free</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="targetEmergencyFundMonths"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Target Emergency Fund</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="e.g. 6" className="font-mono" {...field} />
+                        </FormControl>
+                        <FormDescription>Standard advice: 3–6 months</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
-                  name="targetSavingsRate"
+                  name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Target Savings Rate (%)</FormLabel>
+                      <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g. 20" {...field} />
+                        <Textarea 
+                          placeholder="Any context for your goals?" 
+                          className="resize-none min-h-[100px]" 
+                          {...field} 
+                        />
                       </FormControl>
-                      <FormDescription>Recommended: 20% or more</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="targetMonthlySavings"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Target Monthly Savings ($)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g. 1000" {...field} />
-                      </FormControl>
-                      <FormDescription>Amount to save each month</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="targetDebtPayoffMonths"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Target Debt Payoff (months)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g. 24" {...field} />
-                      </FormControl>
-                      <FormDescription>Months until you are debt-free</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="targetEmergencyFundMonths"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Target Emergency Fund</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g. 6" {...field} />
-                      </FormControl>
-                      <FormDescription>Standard advice: 3–6 months</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Any context for your goals?" 
-                        className="resize-none" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="pt-2">
-                <Button 
-                  type="submit" 
-                  disabled={upsertGoals.isPending}
-                  data-testid="button-save-goals"
-                  className="flex items-center gap-2"
-                >
-                  {upsertGoals.isPending ? (
-                    <>Saving...</>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save Goals
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+                <div className="pt-2">
+                  <Button 
+                    type="submit" 
+                    disabled={upsertGoals.isPending}
+                    data-testid="button-save-goals"
+                    className="flex items-center gap-2 rounded-full shadow-md px-6"
+                  >
+                    {upsertGoals.isPending ? (
+                      <>Saving...</>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" /> Save Goals
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }

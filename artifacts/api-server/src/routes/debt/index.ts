@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, analysesTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -102,8 +102,14 @@ function buildSchedule(
   };
 }
 
-router.get("/debt/payoff-plan", async (_req, res) => {
-  const [latest] = await db.select().from(analysesTable).orderBy(desc(analysesTable.createdAt)).limit(1);
+router.get("/debt/payoff-plan", async (req, res) => {
+  const userId = req.user!.id;
+  const [latest] = await db
+    .select()
+    .from(analysesTable)
+    .where(eq(analysesTable.userId, userId))
+    .orderBy(desc(analysesTable.createdAt))
+    .limit(1);
 
   if (!latest) {
     res.json({ hasDebts: false, totalDebt: 0, monthlyBudget: 0 });

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, analysesTable } from "@workspace/db";
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
+import { requirePremium } from "../../middlewares/premium";
 
 const router = Router();
 
@@ -13,8 +14,13 @@ function escapeCSV(val: string | number | null | undefined): string {
   return s;
 }
 
-router.get("/analysis/export/csv", async (_req, res) => {
-  const rows = await db.select().from(analysesTable).orderBy(asc(analysesTable.createdAt));
+router.get("/analysis/export/csv", requirePremium, async (req, res) => {
+  const userId = req.user!.id;
+  const rows = await db
+    .select()
+    .from(analysesTable)
+    .where(eq(analysesTable.userId, userId))
+    .orderBy(asc(analysesTable.createdAt));
 
   const headers = [
     "ID", "Date", "Monthly Income", "Total Expenses", "Total Debt",

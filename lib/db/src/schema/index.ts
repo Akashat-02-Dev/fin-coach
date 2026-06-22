@@ -20,3 +20,6 @@
 export * from "./analyses";
 export * from "./goals";
 export * from "./net-worth";
+export * from "./users";
+export * from "./vault";
+export * from "./investment-scenarios";

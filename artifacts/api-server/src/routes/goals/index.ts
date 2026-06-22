@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, goalsTable } from "@workspace/db";
 import { UpsertGoalsBody } from "@workspace/api-zod";
-import { desc } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 
 const router = Router();
 
@@ -16,7 +16,14 @@ const toGoalsResponse = (row: typeof goalsTable.$inferSelect) => ({
 });
 
 router.get("/goals", async (req, res) => {
-  const [row] = await db.select().from(goalsTable).orderBy(desc(goalsTable.id)).limit(1);
+  const userId = req.user!.id;
+  const [row] = await db
+    .select()
+    .from(goalsTable)
+    .where(eq(goalsTable.userId, userId))
+    .orderBy(desc(goalsTable.id))
+    .limit(1);
+
   if (!row) {
     res.json({
       id: null,
@@ -39,10 +46,16 @@ router.put("/goals", async (req, res) => {
     return;
   }
 
+  const userId = req.user!.id;
   const data = parsed.data;
-  const [existing] = await db.select({ id: goalsTable.id }).from(goalsTable).limit(1);
+  const [existing] = await db
+    .select({ id: goalsTable.id })
+    .from(goalsTable)
+    .where(eq(goalsTable.userId, userId))
+    .limit(1);
 
   const values = {
+    userId,
     targetSavingsRate: data.targetSavingsRate != null ? String(data.targetSavingsRate) : null,
     targetMonthlySavings: data.targetMonthlySavings != null ? String(data.targetMonthlySavings) : null,
     targetDebtPayoffMonths: data.targetDebtPayoffMonths ?? null,
@@ -52,8 +65,11 @@ router.put("/goals", async (req, res) => {
 
   let row: typeof goalsTable.$inferSelect;
   if (existing) {
-    const { eq } = await import("drizzle-orm");
-    [row] = await db.update(goalsTable).set(values).where(eq(goalsTable.id, existing.id)).returning();
+    [row] = await db
+      .update(goalsTable)
+      .set(values)
+      .where(and(eq(goalsTable.id, existing.id), eq(goalsTable.userId, userId)))
+      .returning();
   } else {
     [row] = await db.insert(goalsTable).values(values).returning();
   }

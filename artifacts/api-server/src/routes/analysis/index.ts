@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { analysesTable } from "@workspace/db";
 import { RunAnalysisBody } from "@workspace/api-zod";
-import { desc, eq, avg, count } from "drizzle-orm";
+import { desc, eq, and, avg, count } from "drizzle-orm";
 import { runFinancialAnalysis } from "../../lib/financial-agents";
 import parseCsvRouter from "./parse-csv";
 import insightsRouter from "./insights";
@@ -17,6 +17,7 @@ router.post("/analysis/run", async (req, res) => {
   }
 
   const input = parsed.data;
+  const userId = req.user!.id;
 
   try {
     const result = await runFinancialAnalysis({
@@ -39,6 +40,7 @@ router.post("/analysis/run", async (req, res) => {
     const [saved] = await db
       .insert(analysesTable)
       .values({
+        userId,
         monthlyIncome: String(input.monthlyIncome),
         dependants: input.dependants ?? 0,
         totalExpenses: String(totalExpenses),
@@ -67,6 +69,7 @@ router.post("/analysis/run", async (req, res) => {
 });
 
 router.get("/analysis/history", async (req, res) => {
+  const userId = req.user!.id;
   const rows = await db
     .select({
       id: analysesTable.id,
@@ -77,6 +80,7 @@ router.get("/analysis/history", async (req, res) => {
       totalDebt: analysesTable.totalDebt,
     })
     .from(analysesTable)
+    .where(eq(analysesTable.userId, userId))
     .orderBy(desc(analysesTable.createdAt))
     .limit(50);
 
@@ -99,10 +103,11 @@ router.get("/analysis/history/:id", async (req, res) => {
     return;
   }
 
+  const userId = req.user!.id;
   const [row] = await db
     .select()
     .from(analysesTable)
-    .where(eq(analysesTable.id, id))
+    .where(and(eq(analysesTable.id, id), eq(analysesTable.userId, userId)))
     .limit(1);
 
   if (!row) {
@@ -127,9 +132,10 @@ router.delete("/analysis/history/:id", async (req, res) => {
     return;
   }
 
+  const userId = req.user!.id;
   const deleted = await db
     .delete(analysesTable)
-    .where(eq(analysesTable.id, id))
+    .where(and(eq(analysesTable.id, id), eq(analysesTable.userId, userId)))
     .returning({ id: analysesTable.id });
 
   if (!deleted.length) {
@@ -141,6 +147,7 @@ router.delete("/analysis/history/:id", async (req, res) => {
 });
 
 router.get("/analysis/stats", async (req, res) => {
+  const userId = req.user!.id;
   const [stats] = await db
     .select({
       totalAnalyses: count(),
@@ -149,7 +156,8 @@ router.get("/analysis/stats", async (req, res) => {
       avgTotalExpenses: avg(analysesTable.totalExpenses),
       avgTotalDebt: avg(analysesTable.totalDebt),
     })
-    .from(analysesTable);
+    .from(analysesTable)
+    .where(eq(analysesTable.userId, userId));
 
   res.json({
     totalAnalyses: Number(stats?.totalAnalyses ?? 0),

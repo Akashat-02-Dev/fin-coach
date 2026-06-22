@@ -271,4 +271,17 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Glassmorphism Utilities */
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm;
+  }
+  
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-xl border-border/50 shadow-lg dark:shadow-none dark:border-white/5;
+  }
+
+  .glass-sidebar {
+    @apply bg-sidebar/80 backdrop-blur-2xl border-r border-border/50;
+  }
 }

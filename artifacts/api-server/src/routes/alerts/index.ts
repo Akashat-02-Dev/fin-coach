@@ -1,12 +1,22 @@
 import { Router } from "express";
 import { db, analysesTable, goalsTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const router = Router();
 
-router.get("/alerts", async (_req, res) => {
-  const analyses = await db.select().from(analysesTable).orderBy(desc(analysesTable.createdAt)).limit(2);
-  const [goals] = await db.select().from(goalsTable).limit(1);
+router.get("/alerts", async (req, res) => {
+  const userId = req.user!.id;
+  const analyses = await db
+    .select()
+    .from(analysesTable)
+    .where(eq(analysesTable.userId, userId))
+    .orderBy(desc(analysesTable.createdAt))
+    .limit(2);
+  const [goals] = await db
+    .select()
+    .from(goalsTable)
+    .where(eq(goalsTable.userId, userId))
+    .limit(1);
 
   const alerts: {
     id: string;

@@ -368,3 +368,389 @@ export const GetAlertsResponseItem = zod.object({
 export const GetAlertsResponse = zod.array(GetAlertsResponseItem)
 
 
+/**
+ * @summary Register a new user
+ */
+export const SignupUserBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish()
+})
+
+
+/**
+ * @summary Log in an existing user
+ */
+export const LoginUserBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string()
+})
+
+export const LoginUserResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Log out the current user session
+ */
+export const LogoutUserResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Verify the active session and get current user details
+ */
+export const AuthMeResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Get user profile details
+ */
+export const GetProfileResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Update user profile details
+ */
+export const UpdateProfileBody = zod.object({
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "currentPassword": zod.string().nullish(),
+  "newPassword": zod.string().nullish()
+})
+
+export const UpdateProfileResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Get the current user's profile details
+ */
+export const GetUserProfileResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Update the current user's profile details
+ */
+export const UpdateUserProfileBody = zod.object({
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "currentPassword": zod.string().nullish(),
+  "newPassword": zod.string().nullish()
+})
+
+export const UpdateUserProfileResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Create a new Razorpay subscription
+ */
+export const CreateSubscriptionResponse = zod.object({
+  "subscriptionId": zod.string(),
+  "keyId": zod.string()
+})
+
+
+/**
+ * @summary Verify the Razorpay payment signature
+ */
+export const VerifySignatureBody = zod.object({
+  "razorpayPaymentId": zod.string(),
+  "razorpaySubscriptionId": zod.string(),
+  "razorpaySignature": zod.string()
+})
+
+export const VerifySignatureResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "dateOfBirth": zod.string().nullish(),
+  "employmentStatus": zod.string().nullish(),
+  "annualIncomeRange": zod.string().nullish(),
+  "riskTolerance": zod.string().nullish(),
+  "baseCurrency": zod.string().nullish(),
+  "subscriptionStatus": zod.string().nullish(),
+  "subscriptionTier": zod.string().nullish(),
+  "currentPeriodEnd": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "trialDaysRemaining": zod.number(),
+  "isTrialExpired": zod.boolean()
+})
+
+
+/**
+ * @summary Cancel the active Razorpay subscription
+ */
+export const CancelSubscriptionResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Get all accounts in the financial vault
+ */
+export const GetVaultAccountsResponseItem = zod.object({
+  "id": zod.number(),
+  "institutionName": zod.string(),
+  "accountType": zod.string(),
+  "encryptedAccountMask": zod.string(),
+  "currentBalance": zod.number(),
+  "interestRate": zod.number()
+})
+export const GetVaultAccountsResponse = zod.array(GetVaultAccountsResponseItem)
+
+
+/**
+ * @summary Create a new account in the vault
+ */
+export const CreateVaultAccountBody = zod.object({
+  "institutionName": zod.string(),
+  "accountType": zod.string(),
+  "encryptedAccountMask": zod.string(),
+  "currentBalance": zod.number(),
+  "interestRate": zod.number()
+})
+
+
+/**
+ * @summary Delete an account from the vault
+ */
+export const DeleteVaultAccountParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get all investments in the financial vault
+ */
+export const GetVaultInvestmentsResponseItem = zod.object({
+  "id": zod.number(),
+  "assetClass": zod.string(),
+  "tickerSymbol": zod.string().nullish(),
+  "currentValue": zod.number(),
+  "costBasis": zod.number()
+})
+export const GetVaultInvestmentsResponse = zod.array(GetVaultInvestmentsResponseItem)
+
+
+/**
+ * @summary Create a new investment in the vault
+ */
+export const CreateVaultInvestmentBody = zod.object({
+  "assetClass": zod.string(),
+  "tickerSymbol": zod.string().nullish(),
+  "currentValue": zod.number(),
+  "costBasis": zod.number()
+})
+
+
+/**
+ * @summary Delete an investment from the vault
+ */
+export const DeleteVaultInvestmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get all insurance policies in the financial vault
+ */
+export const GetVaultInsurancePoliciesResponseItem = zod.object({
+  "id": zod.number(),
+  "policyType": zod.string(),
+  "coverageAmount": zod.number(),
+  "monthlyPremium": zod.number()
+})
+export const GetVaultInsurancePoliciesResponse = zod.array(GetVaultInsurancePoliciesResponseItem)
+
+
+/**
+ * @summary Create a new insurance policy in the vault
+ */
+export const CreateVaultInsurancePolicyBody = zod.object({
+  "policyType": zod.string(),
+  "coverageAmount": zod.number(),
+  "monthlyPremium": zod.number()
+})
+
+
+/**
+ * @summary Delete an insurance policy from the vault
+ */
+export const DeleteVaultInsurancePolicyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get typical market benchmark returns
+ */
+export const GetBenchmarkRatesResponse = zod.object({
+  "fixedDeposit": zod.number(),
+  "corporateBonds": zod.number(),
+  "gold": zod.number(),
+  "indexFunds": zod.number(),
+  "realEstate": zod.number()
+})
+
+
+/**
+ * @summary List saved investment scenarios for the user
+ */
+export const ListInvestmentScenariosResponseItem = zod.object({
+  "id": zod.number(),
+  "scenarioName": zod.string(),
+  "investmentType": zod.string(),
+  "principalAmount": zod.number(),
+  "durationYears": zod.number(),
+  "metaData": zod.object({
+
+}).passthrough().nullish(),
+  "createdAt": zod.string()
+})
+export const ListInvestmentScenariosResponse = zod.array(ListInvestmentScenariosResponseItem)
+
+
+/**
+ * @summary Save a new investment scenario projection
+ */
+export const CreateInvestmentScenarioBody = zod.object({
+  "scenarioName": zod.string(),
+  "investmentType": zod.string(),
+  "principalAmount": zod.number(),
+  "durationYears": zod.number(),
+  "metaData": zod.object({
+
+}).passthrough().nullish()
+})
+
+
+/**
+ * @summary Delete a saved investment scenario projection
+ */
+export const DeleteInvestmentScenarioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+

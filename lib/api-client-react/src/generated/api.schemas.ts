@@ -13,6 +13,11 @@ export interface ApiError {
   error: string;
 }
 
+export interface TrialExpiredError {
+  error: string;
+  message: string;
+}
+
 export interface DebtItem {
   name: string;
   amount: number;
@@ -295,4 +300,169 @@ export interface Alert {
   /** @nullable */
   threshold?: number | null;
 }
+
+export interface User {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  /** @nullable */
+  dateOfBirth?: string | null;
+  /** @nullable */
+  employmentStatus?: string | null;
+  /** @nullable */
+  annualIncomeRange?: string | null;
+  /** @nullable */
+  riskTolerance?: string | null;
+  /** @nullable */
+  baseCurrency?: string | null;
+  /** @nullable */
+  subscriptionStatus?: string | null;
+  /** @nullable */
+  subscriptionTier?: string | null;
+  /** @nullable */
+  currentPeriodEnd?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  trialDaysRemaining: number;
+  isTrialExpired: boolean;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface SignupInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  /** @nullable */
+  dateOfBirth?: string | null;
+  /** @nullable */
+  employmentStatus?: string | null;
+  /** @nullable */
+  annualIncomeRange?: string | null;
+  /** @nullable */
+  riskTolerance?: string | null;
+  /** @nullable */
+  baseCurrency?: string | null;
+}
+
+export interface UserProfileInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** @nullable */
+  dateOfBirth?: string | null;
+  /** @nullable */
+  employmentStatus?: string | null;
+  /** @nullable */
+  annualIncomeRange?: string | null;
+  /** @nullable */
+  riskTolerance?: string | null;
+  /** @nullable */
+  baseCurrency?: string | null;
+  /** @nullable */
+  currentPassword?: string | null;
+  /** @nullable */
+  newPassword?: string | null;
+}
+
+export interface VaultAccount {
+  id: number;
+  institutionName: string;
+  accountType: string;
+  encryptedAccountMask: string;
+  currentBalance: number;
+  interestRate: number;
+}
+
+export interface VaultAccountInput {
+  institutionName: string;
+  accountType: string;
+  encryptedAccountMask: string;
+  currentBalance: number;
+  interestRate: number;
+}
+
+export interface VaultInvestment {
+  id: number;
+  assetClass: string;
+  /** @nullable */
+  tickerSymbol?: string | null;
+  currentValue: number;
+  costBasis: number;
+}
+
+export interface VaultInvestmentInput {
+  assetClass: string;
+  /** @nullable */
+  tickerSymbol?: string | null;
+  currentValue: number;
+  costBasis: number;
+}
+
+export interface VaultInsurancePolicy {
+  id: number;
+  policyType: string;
+  coverageAmount: number;
+  monthlyPremium: number;
+}
+
+export interface VaultInsurancePolicyInput {
+  policyType: string;
+  coverageAmount: number;
+  monthlyPremium: number;
+}
+
+export interface InvestmentBenchmarkRates {
+  fixedDeposit: number;
+  corporateBonds: number;
+  gold: number;
+  indexFunds: number;
+  realEstate: number;
+}
+
+export type InvestmentScenarioMetaData = { [key: string]: unknown } | null;
+
+export interface InvestmentScenario {
+  id: number;
+  scenarioName: string;
+  investmentType: string;
+  principalAmount: number;
+  durationYears: number;
+  metaData?: InvestmentScenarioMetaData;
+  createdAt: string;
+}
+
+export type InvestmentScenarioInputMetaData = { [key: string]: unknown } | null;
+
+export interface InvestmentScenarioInput {
+  scenarioName: string;
+  investmentType: string;
+  principalAmount: number;
+  durationYears: number;
+  metaData?: InvestmentScenarioInputMetaData;
+}
+
+export type LogoutUser200 = {
+  success: boolean;
+};
+
+export type CreateSubscription200 = {
+  subscriptionId: string;
+  keyId: string;
+};
+
+export type VerifySignatureBody = {
+  razorpayPaymentId: string;
+  razorpaySubscriptionId: string;
+  razorpaySignature: string;
+};
+
+export type CancelSubscription200 = {
+  success: boolean;
+};
 

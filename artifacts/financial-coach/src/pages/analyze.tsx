@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
+import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { useRunAnalysis, getListAnalysisHistoryQueryKey, getGetAnalysisStatsQueryKey } from "@workspace/api-client-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,12 +42,28 @@ const defaultExpenses = [
   { category: "Healthcare", amount: 0 },
 ];
 
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+} as const;
+
 export default function Analyze() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const runAnalysis = useRunAnalysis();
   const [progressStep, setProgressStep] = useState(0);
+  const { user } = useAuth();
+  const currencySymbol = user?.baseCurrency ? (new Intl.NumberFormat("en-US", { style: "currency", currency: user.baseCurrency }).formatToParts(0).find(p => p.type === 'currency')?.value || '$') : '$';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,7 +128,7 @@ export default function Analyze() {
         setProgressStep(0);
         toast({
           title: "Analysis failed",
-          description: err.error || "An unexpected error occurred",
+          description: err.message || "An unexpected error occurred",
           variant: "destructive"
         });
       }
@@ -124,9 +142,9 @@ export default function Analyze() {
       { label: "Debt Reduction Agent", desc: "Comparing payoff strategies & timelines" },
     ];
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] p-8 max-w-2xl mx-auto text-center space-y-12">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 max-w-2xl mx-auto text-center space-y-12">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Running Analysis</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-primary animate-pulse">Running Analysis</h2>
           <p className="text-muted-foreground">Our AI agents are crunching your numbers...</p>
         </div>
         <div className="w-full max-w-md space-y-8">
@@ -137,7 +155,7 @@ export default function Analyze() {
             return (
               <div
                 key={step.label}
-                className={`flex items-center gap-4 transition-opacity duration-500 ${progressStep >= idx ? "opacity-100" : "opacity-30"}`}
+                className={`flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-xl transition-opacity duration-500 ${progressStep >= idx ? "opacity-100" : "opacity-30"}`}
               >
                 <div className="shrink-0">
                   {done ? (
@@ -161,272 +179,291 @@ export default function Analyze() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">New Financial Analysis</h1>
+    <motion.div 
+      className="p-6 md:p-8 max-w-4xl mx-auto space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={itemVariants}>
+        <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+          New Financial Analysis
+        </h1>
         <p className="text-muted-foreground mt-1">Enter your financial details or import a bank statement to auto-fill expenses.</p>
-      </div>
+      </motion.div>
 
       {/* CSV Import */}
-      <CsvImport onApply={handleCsvApply} />
+      <motion.div variants={itemVariants}>
+        <CsvImport onApply={handleCsvApply} />
+      </motion.div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
           {/* Income & Basics */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Income & Basics</CardTitle>
-              <CardDescription>Your regular monthly cash flow.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="monthlyIncome"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Monthly Income (After Tax)</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                        <Input type="number" placeholder="5000" className="pl-8 font-mono" data-testid="input-monthly-income" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dependants"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dependants</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="0" className="font-mono" data-testid="input-dependants" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <motion.div variants={itemVariants}>
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle>Income & Basics</CardTitle>
+                <CardDescription>Your regular monthly cash flow.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 grid-cols-1 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="monthlyIncome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monthly Income (After Tax)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-muted-foreground font-mono">{currencySymbol}</span>
+                          <Input type="number" placeholder="5000" className="pl-8 font-mono" data-testid="input-monthly-income" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dependants"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dependants</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0" className="font-mono" data-testid="input-dependants" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Monthly Expenses */}
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Monthly Expenses</CardTitle>
-                <CardDescription>
-                  Average spending by category.{" "}
-                  {expenseFields.length > 0 && (
-                    <span className="text-primary font-medium">
-                      Total: ${expenseFields.reduce((sum, _, i) => {
-                        const val = form.getValues(`expenses.${i}.amount`);
-                        return sum + (Number(val) || 0);
-                      }, 0).toLocaleString()}
-                    </span>
-                  )}
-                </CardDescription>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendExpense({ category: "", amount: 0 })}
-                data-testid="button-add-expense"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Category
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {expenseFields.map((field, index) => (
-                <div key={field.id} className="flex gap-4 items-start" data-testid={`expense-row-${index}`}>
-                  <FormField
-                    control={form.control}
-                    name={`expenses.${index}.category`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Input placeholder="Category name" data-testid={`input-expense-category-${index}`} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+          <motion.div variants={itemVariants}>
+            <Card className="glass-card">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Monthly Expenses</CardTitle>
+                  <CardDescription>
+                    Average spending by category.{" "}
+                    {expenseFields.length > 0 && (
+                      <span className="text-primary font-bold block sm:inline sm:ml-2">
+                        Total: {currencySymbol}{expenseFields.reduce((sum, _, i) => {
+                          const val = form.getValues(`expenses.${i}.amount`);
+                          return sum + (Number(val) || 0);
+                        }, 0).toLocaleString()}
+                      </span>
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`expenses.${index}.amount`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                            <Input type="number" placeholder="0" className="pl-8 font-mono" data-testid={`input-expense-amount-${index}`} {...field} />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="mt-0.5 text-muted-foreground hover:text-destructive shrink-0"
-                    onClick={() => removeExpense(index)}
-                    data-testid={`button-remove-expense-${index}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </CardDescription>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendExpense({ category: "", amount: 0 })}
+                  data-testid="button-add-expense"
+                  className="rounded-full shrink-0"
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Category
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {expenseFields.map((field, index) => (
+                  <div key={field.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start p-4 sm:p-0 border sm:border-0 rounded-lg sm:rounded-none bg-muted/20 sm:bg-transparent" data-testid={`expense-row-${index}`}>
+                    <FormField
+                      control={form.control}
+                      name={`expenses.${index}.category`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input placeholder="Category name" data-testid={`input-expense-category-${index}`} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`expenses.${index}.amount`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <div className="relative">
+                              <span className="absolute left-3 top-2.5 text-muted-foreground font-mono">{currencySymbol}</span>
+                              <Input type="number" placeholder="0" className="pl-8 font-mono" data-testid={`input-expense-amount-${index}`} {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive shrink-0 self-end sm:self-start"
+                      onClick={() => removeExpense(index)}
+                      data-testid={`button-remove-expense-${index}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Outstanding Debts */}
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Outstanding Debts</CardTitle>
-                <CardDescription>Credit cards, loans, etc. Leave empty if none.</CardDescription>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendDebt({ name: "", amount: 0, interestRate: 0, minPayment: null })}
-                data-testid="button-add-debt"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Debt
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {debtFields.length === 0 ? (
-                <div className="text-center py-6 text-sm text-muted-foreground border border-dashed rounded-lg">
-                  No debts added — you are debt-free!
+          <motion.div variants={itemVariants}>
+            <Card className="glass-card">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Outstanding Debts</CardTitle>
+                  <CardDescription>Credit cards, loans, etc. Leave empty if none.</CardDescription>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {debtFields.map((field, index) => (
-                    <div key={field.id} className="p-4 border rounded-md relative bg-muted/20" data-testid={`debt-row-${index}`}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeDebt(index)}
-                        data-testid={`button-remove-debt-${index}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pr-8">
-                        <FormField
-                          control={form.control}
-                          name={`debts.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Name / Account</FormLabel>
-                              <FormControl><Input placeholder="Visa..." data-testid={`input-debt-name-${index}`} {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`debts.${index}.amount`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Balance</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                                  <Input type="number" className="pl-8 font-mono" data-testid={`input-debt-amount-${index}`} {...field} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`debts.${index}.interestRate`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Interest Rate</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Input type="number" step="0.1" className="pr-8 font-mono" data-testid={`input-debt-rate-${index}`} {...field} />
-                                  <span className="absolute right-3 top-2.5 text-muted-foreground">%</span>
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`debts.${index}.minPayment`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Min Payment</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                                  <Input type="number" className="pl-8 font-mono" data-testid={`input-debt-minpay-${index}`} {...field} value={field.value ?? ""} />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendDebt({ name: "", amount: 0, interestRate: 0, minPayment: null })}
+                  data-testid="button-add-debt"
+                  className="rounded-full shrink-0"
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Debt
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {debtFields.length === 0 ? (
+                  <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-lg border-border/50 bg-muted/10">
+                    No debts added — you are debt-free!
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {debtFields.map((field, index) => (
+                      <div key={field.id} className="p-4 border border-border/50 rounded-xl relative bg-muted/20" data-testid={`debt-row-${index}`}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeDebt(index)}
+                          data-testid={`button-remove-debt-${index}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pr-8">
+                          <FormField
+                            control={form.control}
+                            name={`debts.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Name / Account</FormLabel>
+                                <FormControl><Input placeholder="Visa..." data-testid={`input-debt-name-${index}`} {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`debts.${index}.amount`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Balance</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-2.5 text-muted-foreground font-mono">{currencySymbol}</span>
+                                    <Input type="number" className="pl-8 font-mono" data-testid={`input-debt-amount-${index}`} {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`debts.${index}.interestRate`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Interest Rate</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Input type="number" step="0.1" className="pr-8 font-mono" data-testid={`input-debt-rate-${index}`} {...field} />
+                                    <span className="absolute right-3 top-2.5 text-muted-foreground font-mono">%</span>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`debts.${index}.minPayment`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Min Payment</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-2.5 text-muted-foreground font-mono">{currencySymbol}</span>
+                                    <Input type="number" className="pl-8 font-mono" data-testid={`input-debt-minpay-${index}`} {...field} value={field.value ?? ""} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Additional Context */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Additional Context</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Any financial goals or concerns for the AI to consider? (e.g. saving for a house in 2 years)"
-                        className="min-h-[100px]"
-                        data-testid="textarea-notes"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <motion.div variants={itemVariants}>
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle>Additional Context</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Any financial goals or concerns for the AI to consider? (e.g. saving for a house in 2 years)"
+                          className="min-h-[100px]"
+                          data-testid="textarea-notes"
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <div className="flex justify-end pt-4 pb-12">
+          <motion.div variants={itemVariants} className="flex justify-end pt-4 pb-12">
             <Button
               type="submit"
               size="lg"
-              className="w-full sm:w-auto shadow-md font-semibold text-md px-8 hover-elevate"
+              className="w-full sm:w-auto shadow-md font-semibold text-md px-8 rounded-full hover-elevate"
               data-testid="button-run-analysis"
             >
               Run Complete Analysis
             </Button>
-          </div>
+          </motion.div>
         </form>
       </Form>
-    </div>
+    </motion.div>
   );
 }

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, analysesTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -27,8 +27,14 @@ const CATEGORY_MAP: Record<string, string> = {
   news: "Media", magazine: "Media",
 };
 
-router.get("/analysis/recurring", async (_req, res) => {
-  const [latest] = await db.select().from(analysesTable).orderBy(desc(analysesTable.createdAt)).limit(1);
+router.get("/analysis/recurring", async (req, res) => {
+  const userId = req.user!.id;
+  const [latest] = await db
+    .select()
+    .from(analysesTable)
+    .where(eq(analysesTable.userId, userId))
+    .orderBy(desc(analysesTable.createdAt))
+    .limit(1);
 
   if (!latest) {
     res.json([]);

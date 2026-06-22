@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useListNetWorth, useCreateNetWorthEntry, useDeleteNetWorthEntry, getListNetWorthQueryKey } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +11,29 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+} as const;
 
 export default function NetWorth() {
   const { data: entries, isLoading } = useListNetWorth();
   const createEntry = useCreateNetWorthEntry();
   const deleteEntry = useDeleteNetWorthEntry();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const currencySymbol = user?.baseCurrency ? (new Intl.NumberFormat("en-US", { style: "currency", currency: user.baseCurrency }).formatToParts(0).find(p => p.type === 'currency')?.value || '$') : '$';
 
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [assets, setAssets] = useState("");
@@ -22,7 +41,7 @@ export default function NetWorth() {
   const [notes, setNotes] = useState("");
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: user?.baseCurrency || 'USD', maximumFractionDigits: 0 }).format(val);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,15 +81,33 @@ export default function NetWorth() {
     formattedDate: format(new Date(e.date), "MMM d, yy")
   }));
 
-  if (isLoading) return <div className="p-8 text-center">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="p-8 space-y-8 max-w-6xl mx-auto">
+        <Skeleton className="h-10 w-48 rounded-md mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Skeleton className="h-[400px] w-full rounded-xl" />
+          <div className="lg:col-span-2 space-y-8">
+            <Skeleton className="h-[350px] w-full rounded-xl" />
+            <Skeleton className="h-[250px] w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8 space-y-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight">Net Worth Tracker</h1>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="p-8 space-y-8 max-w-6xl mx-auto"
+    >
+      <motion.h1 variants={itemVariants} className="text-3xl font-bold tracking-tight">Net Worth Tracker</motion.h1>
       
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
-          <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <motion.div variants={itemVariants} className="lg:col-span-1">
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle>Add Snapshot</CardTitle>
             </CardHeader>
@@ -81,11 +118,11 @@ export default function NetWorth() {
                   <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Total Assets ($)</Label>
+                  <Label>Total Assets ({currencySymbol})</Label>
                   <Input type="number" step="0.01" value={assets} onChange={(e) => setAssets(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Total Liabilities ($)</Label>
+                  <Label>Total Liabilities ({currencySymbol})</Label>
                   <Input type="number" step="0.01" value={liabilities} onChange={(e) => setLiabilities(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
@@ -107,77 +144,85 @@ export default function NetWorth() {
               </form>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
-        <div className="md:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-8">
           {sortedEntries.length === 0 ? (
-            <Card className="text-center py-16 border-dashed">
-              <CardContent>
-                <h3 className="text-lg font-medium mb-2">No data yet</h3>
-                <p className="text-muted-foreground">Add your first snapshot to start tracking your net worth.</p>
-              </CardContent>
-            </Card>
+            <motion.div variants={itemVariants}>
+              <Card className="glass-card text-center py-16 border-dashed">
+                <CardContent>
+                  <h3 className="text-lg font-medium mb-2">No data yet</h3>
+                  <p className="text-muted-foreground">Add your first snapshot to start tracking your net worth.</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ) : (
             <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Net Worth Over Time</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[350px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="formattedDate" />
-                        <YAxis tickFormatter={(val) => `$${val}`} />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Legend />
-                        <Line type="monotone" dataKey="assets" name="Assets" stroke="#22c55e" strokeWidth={2} />
-                        <Line type="monotone" dataKey="liabilities" name="Liabilities" stroke="#ef4444" strokeWidth={2} />
-                        <Line type="monotone" dataKey="netWorth" name="Net Worth" stroke="#0d9488" strokeWidth={3} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div variants={itemVariants}>
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle>Net Worth Over Time</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[350px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="formattedDate" />
+                          <YAxis tickFormatter={(val) => `${currencySymbol}${val}`} />
+                          <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                          <Legend />
+                          <Line type="monotone" dataKey="assets" name="Assets" stroke="#22c55e" strokeWidth={2} />
+                          <Line type="monotone" dataKey="liabilities" name="Liabilities" stroke="#ef4444" strokeWidth={2} />
+                          <Line type="monotone" dataKey="netWorth" name="Net Worth" stroke="#0d9488" strokeWidth={3} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Assets</TableHead>
-                        <TableHead>Liabilities</TableHead>
-                        <TableHead>Net Worth</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {[...sortedEntries].reverse().map((entry) => (
-                        <TableRow key={entry.id}>
-                          <TableCell>{format(new Date(entry.date), "MMM d, yyyy")}</TableCell>
-                          <TableCell>{formatCurrency(entry.assets)}</TableCell>
-                          <TableCell>{formatCurrency(entry.liabilities)}</TableCell>
-                          <TableCell className="font-bold">{formatCurrency(entry.netWorth)}</TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(entry.id)} className="text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <motion.div variants={itemVariants}>
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle>History</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Assets</TableHead>
+                            <TableHead>Liabilities</TableHead>
+                            <TableHead>Net Worth</TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[...sortedEntries].reverse().map((entry) => (
+                            <TableRow key={entry.id}>
+                              <TableCell>{format(new Date(entry.date), "MMM d, yyyy")}</TableCell>
+                              <TableCell>{formatCurrency(entry.assets)}</TableCell>
+                              <TableCell>{formatCurrency(entry.liabilities)}</TableCell>
+                              <TableCell className="font-bold">{formatCurrency(entry.netWorth)}</TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(entry.id)} className="text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

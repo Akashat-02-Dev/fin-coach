@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, analysesTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { requirePremium } from "../../middlewares/premium";
 
 const router = Router();
 
@@ -55,10 +56,12 @@ function pctChange(prev: number, curr: number): number | null {
   return Math.round(((curr - prev) / prev) * 1000) / 10;
 }
 
-router.get("/analysis/insights", async (req, res) => {
+router.get("/analysis/insights", requirePremium, async (req, res) => {
+  const userId = req.user!.id;
   const rows = await db
     .select()
     .from(analysesTable)
+    .where(eq(analysesTable.userId, userId))
     .orderBy(desc(analysesTable.createdAt))
     .limit(2);
 
