@@ -78,6 +78,7 @@ To host this multi-package repository (monorepo) for free with all features work
    - `RAZORPAY_KEY_SECRET`: `<your_razorpay_key_secret>`
    - `RAZORPAY_PLAN_ID`: `<your_razorpay_plan_id>`
    - `RAZORPAY_WEBHOOK_SECRET`: `<your_razorpay_webhook_secret>`
+   - `PNPM_VERSION`: `10.33.0`
 5. Click **Create Web Service**. Once deployed, copy your service's URL (e.g., `https://fincoach-api.onrender.com`).
 
 ---
@@ -95,6 +96,7 @@ To host this multi-package repository (monorepo) for free with all features work
 4. Add the following **Environment Variables** in the settings:
    - `PORT`: `3000`
    - `BASE_PATH`: `/`
+   - `PNPM_VERSION`: `10.33.0`
 5. Click **Create Static Site**.
 6. Once deployed, copy your static site's URL (e.g., `https://fincoach.onrender.com`).
 
