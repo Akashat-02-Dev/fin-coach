@@ -33,7 +33,15 @@ app.use(
   }),
 );
 
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow any origin to support cross-site requests with credentials
+      callback(null, true);
+    },
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(
   express.json({

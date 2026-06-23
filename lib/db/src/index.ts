@@ -13,10 +13,22 @@ if (!process.env.DATABASE_URL) {
 const connectionString = process.env.DATABASE_URL;
 const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1");
 
+let cleanedConnectionString = connectionString;
+try {
+  const parsedUrl = new URL(connectionString);
+  if (parsedUrl.searchParams.has("sslmode")) {
+    parsedUrl.searchParams.delete("sslmode");
+    cleanedConnectionString = parsedUrl.toString();
+  }
+} catch (e) {
+  // Fallback if DATABASE_URL is not a valid URL structure
+}
+
 export const pool = new Pool({
-  connectionString,
+  connectionString: cleanedConnectionString,
   ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
+
